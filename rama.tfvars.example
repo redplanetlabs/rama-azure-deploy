@@ -1,0 +1,25 @@
+# Required
+location = "eastus"
+username = "azureuser"
+
+rama_source_path    = "/absolute/path/to/rama.zip"
+license_source_path = "/absolute/path/to/license.edn"
+zookeeper_url   = "https://dlcdn.apache.org/zookeeper/zookeeper-3.8.4/apache-zookeeper-3.8.4-bin.tar.gz"
+
+supervisor_num_nodes = 2
+
+security_group_id = "/subscriptions/.../resourceGroups/.../providers/Microsoft.Network/networkSecurityGroups/..."
+subnet_id         = "/subscriptions/.../resourceGroups/.../providers/Microsoft.Network/virtualNetworks/.../subnets/..."
+
+zookeeper_vm_image  = "/subscriptions/.../resourceGroups/.../providers/Microsoft.Compute/galleries/.../images/.../versions/..."
+conductor_vm_image  = "/subscriptions/.../resourceGroups/.../providers/Microsoft.Compute/galleries/.../images/.../versions/..."
+supervisor_vm_image = "/subscriptions/.../resourceGroups/.../providers/Microsoft.Compute/galleries/.../images/.../versions/..."
+
+conductor_size  = "Standard_B1s"
+zookeeper_size  = "Standard_B1s"
+supervisor_size = "Standard_B1s"
+
+# Optional
+# zookeeper_num_nodes  = 1
+# supervisor_volume_size_gb = 100
+# private_ssh_key = "/Users/nixin72/.ssh/azure"

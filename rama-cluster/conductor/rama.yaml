@@ -1,0 +1,16 @@
+# put custom rama.yaml here
+# conductor.host and zookeeper.servers will be added automatically
+
+supervisor.port.range:
+  - 20000
+  - 21000
+
+conductor.child.opts: "-XX:+PrintGC -Xloggc:logs/conductor-gc.log"
+
+local.dir: "local-rama-data"
+
+zookeeper.servers:
+%{ for i in range(length(zk_private_ips)) ~}
+  - "${zk_private_ips[i]}"
+%{ endfor ~}
+conductor.host: "localhost"
