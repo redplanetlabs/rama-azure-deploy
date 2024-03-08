@@ -65,7 +65,7 @@ symlink to a `rama` script that is configured to point to the launched cluster.
 
 To destroy a cluster run `bin/rama-cluster.sh destroy <cluster-name>`.
 
-## Cluster Information and Debugging 
+## Cluster Information and Debugging
 
 ### systemd and journalctl
 
@@ -112,51 +112,51 @@ Zookeeper and Rama nodes all require Java to be present on the system to run.
 Rama supports LTS versions of Java - 8, 11, 17 and 21. One of these needs to
 be installed on the image.
 
-In addition, while setting up the nodes, `unzip`, `curl`, and `nvme-cli` are 
-used and must also be present on the image.
+In addition, while setting up the nodes, `unzip` and `curl` are used and must
+also be present on the image.
 
 ### Networking
 
-Two networking inputs are required for this terraform config: a network 
-security group ID, and a subnet ID. As such, both of these will be required to 
-configure in the Azure portal. 
+Two networking inputs are required for this terraform config: a network
+security group ID, and a subnet ID. As such, both of these will be required to
+configure in the Azure portal.
 
-All nodes created will get assigned to the provided network security group and 
-subnet. 
+All nodes created will get assigned to the provided network security group and
+subnet.
 
 #### Subnet
 
-When configuring your subnet, make sure that the address space is large enough 
+When configuring your subnet, make sure that the address space is large enough
 to support all of the nodes you want to deploy.
 
 #### Security group
 
-When configuring the network security group, it is recommended for simplicity 
-that all traffic to any port is permitted within the network. However, the 
-minimum requirements are: 
+When configuring the network security group, it is recommended for simplicity
+that all traffic to any port is permitted within the network. However, the
+minimum requirements are:
 - Port 8888 is available on the conductor node to serve the API and UI dashboard
 - Port 1972 is available on the conductor for Thrift
 - Port 2181 is available for Zookeeper nodes
-- Supervisors have a configured port range in rama.yaml. 
+- Supervisors have a configured port range in rama.yaml.
   This full range needs to be available for supervisors.
 
 In addition to those all being required internally for Rama to be operational,
-it's also required that port 22 is available on all nodes during the terraform 
-configuration. This is required for provisioning the nodes. If you have a VPN 
+it's also required that port 22 is available on all nodes during the terraform
+configuration. This is required for provisioning the nodes. If you have a VPN
 or Azure Bastion set up, this can be disabled after deployment of the cluster.
 
-#### Public IPs 
+#### Public IPs
 
-Terraform will provision a public IP address for each node in the cluster. In 
-addition to the above, make sure that your Azure subscription permits enough 
+Terraform will provision a public IP address for each node in the cluster. In
+addition to the above, make sure that your Azure subscription permits enough
 public IPs for your cluster.
 
-NOTE: while this configuration doesn't support it, you can potentially remove 
+NOTE: while this configuration doesn't support it, you can potentially remove
 this requirement by having a VPN configured or using Azure Bastion.
 
 ## Terraform configuration
 
-### location 
+### location
 - type: `string`
 - required: `true`
 
@@ -166,7 +166,7 @@ The Azure region to deploy the cluster to. (ex. eastus, eastasia)
 - type: `string`
 - required: `true`
 
-The login username to use for the nodes. Needed to know how to SSH into them and 
+The login username to use for the nodes. Needed to know how to SSH into them and
 know where the home directory should be located.
 
 ### rama_source_path
@@ -188,20 +188,20 @@ An absolute path pointing to the location on the local disk of your Rama license
 The URL to download a zookeeper tar ball from to install on the zookeeper node(s).
 
 NOTE: the url in the example tfvars is likely to break whenever zookeeper has a
-version upgrade. If the URL there isn't working for you, check what's available 
+version upgrade. If the URL there isn't working for you, check what's available
 from the Zookeeper CDN at https://dlcdn.apache.org/zookeeper/
 
 ### security_group_id
 - type: `string`
 - required: `true`
 
-The network security group that the nodes are a member of. 
+The network security group that the nodes are a member of.
 
-### subnet_id 
+### subnet_id
 - type: `string`
 - required: `true`
 
-The subnet that nodes in this cluster will belong to. 
+The subnet that nodes in this cluster will belong to.
 
 NOTE: This information isn't available in the Azure portal. To access, you
 can run the command:

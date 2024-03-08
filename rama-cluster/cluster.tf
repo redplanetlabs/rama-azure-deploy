@@ -81,9 +81,9 @@ terraform {
 }
 
 provider "azurerm" {
-  # This is only required when the User, Service Principal, or Identity running Terraform lacks 
+  # This is only required when the User, Service Principal, or Identity running Terraform lacks
   # the permissions to register Azure Resource Providers.
-  skip_provider_registration = true 
+  skip_provider_registration = true
   features {}
 }
 
@@ -92,7 +92,7 @@ provider "azurerm" {
 ###########################################################
 
 resource "azurerm_resource_group" "cluster" {
-  name = var.cluster_name 
+  name = var.cluster_name
   location = var.location
 }
 
@@ -110,7 +110,7 @@ resource "azurerm_public_ip" "zk" {
   location            = azurerm_resource_group.cluster.location
   allocation_method   = "Dynamic"
   count               = var.zookeeper_num_nodes
-  
+
   tags = {
     environment = "test"
   }
@@ -328,7 +328,7 @@ resource "null_resource" "conductor" {
         zk_private_ips = azurerm_linux_virtual_machine.zk.*.private_ip_address
     })
     destination = "/data/rama/rama.yaml"
-  } 
+  }
 
   provisioner "file" {
     content = templatefile("systemd-service-template.service", {
@@ -344,18 +344,18 @@ resource "null_resource" "conductor" {
   }
 
   provisioner "file" {
-    content = templatefile("conductor/unpack-rama.sh", { username = var.username }) 
+    content = templatefile("conductor/unpack-rama.sh", { username = var.username })
     destination = "/data/rama/unpack-rama.sh"
   }
 
   provisioner "file" {
     content = templatefile("conductor/start.sh", { username = var.username })
-    destination = "${local.home_dir}/start.sh" 
+    destination = "${local.home_dir}/start.sh"
   }
 
-  provisioner "local-exec" {
-    when    = create
-    command = "./upload_rama.sh ${var.private_ssh_key} ${var.rama_source_path} ${var.username} ${local.conductor_public_ip}"
+  provisioner "file" {
+    source    = "${var.rama_source_path}"
+    destination = "${local.home_dir}/rama.zip"
   }
 
   provisioner "remote-exec" {
@@ -365,9 +365,9 @@ resource "null_resource" "conductor" {
       "./unpack-rama.sh"
     ]
   }
-  
+
   provisioner "remote-exec" {
-    inline = [ "chmod +x start.sh", "sudo ./start.sh" ] 
+    inline = [ "chmod +x start.sh", "sudo ./start.sh" ]
   }
 }
 
@@ -463,7 +463,7 @@ resource "null_resource" "supervisor" {
     content = templatefile("setup-disks.sh", { username = var.username })
     destination = "${local.home_dir}/setup-disks.sh"
   }
-  
+
   provisioner "file" {
     content = templatefile("download_rama.sh", { conductor_ip = local.conductor_private_ip })
     destination = "${local.home_dir}/download_rama.sh"
@@ -502,7 +502,7 @@ resource "null_resource" "supervisor" {
   }
 
   provisioner "remote-exec" {
-    inline = [ "chmod +x start.sh", "sudo ./start.sh" ] 
+    inline = [ "chmod +x start.sh", "sudo ./start.sh" ]
   }
 }
 
