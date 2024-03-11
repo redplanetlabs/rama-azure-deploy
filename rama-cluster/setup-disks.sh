@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-# This is intended to be run as root - user data scripts are run as such automatically
+# This is intended to be run as root.
+# Sets up the /data/rama directory for the conductor and supervisor nodes,
+# and sets up a swapfile
 
 mkdir -p /data
 

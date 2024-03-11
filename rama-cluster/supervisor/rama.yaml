@@ -1,5 +1,4 @@
 # put custom rama.yaml here
-# conductor.host and zookeeper.servers will be added automatically
 
 supervisor.port.range:
   - 20000

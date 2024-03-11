@@ -40,11 +40,6 @@ variable "supervisor_volume_size_gb" {
   default = 100
 }
 
-variable "use_private_ip" {
-  type    = bool
-  default = false
-}
-
 variable "private_ssh_key" {
   type    = string
   default = null
@@ -62,6 +57,9 @@ locals {
 
   home_dir    = "/home/${var.username}"
   systemd_dir = "/etc/systemd/system"
+  
+  public_key  = file(var.azure_public_key)
+  private_key = var.private_ssh_key != null ? file(pathexpand("~/.ssh/${var.private_ssh_key}")) : null
 }
 
 ###########################################################
@@ -133,14 +131,13 @@ resource "azurerm_network_interface" "zk" {
 resource "azurerm_network_interface_security_group_association" "zk_association" {
   network_interface_id      = azurerm_network_interface.zk[count.index].id
   network_security_group_id = var.security_group_id
-  count = var.zookeeper_num_nodes
+  count                     = var.zookeeper_num_nodes
 }
 
 ###
 # Virtual Machines
 ###
 
-# TODO: Perhaps this should be an `azurerm_linux_virtual_machine_scale_set` instead?
 resource "azurerm_linux_virtual_machine" "zk" {
   source_image_id     = var.zookeeper_vm_image
   size                = var.zookeeper_size
@@ -164,7 +161,7 @@ resource "azurerm_linux_virtual_machine" "zk" {
 
   admin_ssh_key {
     username   = var.username
-    public_key = file(var.azure_public_key)
+    public_key = local.public_key
   }
 }
 
@@ -181,18 +178,11 @@ resource "null_resource" "zookeeper" {
     type        = "ssh"
     user        = var.username
     host        = data.azurerm_public_ip.zk[count.index].ip_address
-    private_key = var.private_ssh_key != null ? file(var.private_ssh_key) : null
+    private_key = local.private_key
   }
 
   triggers = {
     zookeeper_ids = "${join(",", azurerm_linux_virtual_machine.zk.*.id)}"
-  }
-
-  provisioner "file" {
-    content = templatefile("zookeeper/zookeeper.service", {
-      username = var.username
-    })
-    destination = "${local.home_dir}/zookeeper.service"
   }
 
   provisioner "file" {
@@ -205,6 +195,13 @@ resource "null_resource" "zookeeper" {
       "chmod +x ${local.home_dir}/setup.sh",
       "${local.home_dir}/setup.sh ${var.zookeeper_url}"
     ]
+  }
+
+  provisioner "file" {
+    content = templatefile("zookeeper/zookeeper.service", {
+      username = var.username
+    })
+    destination = "${local.home_dir}/zookeeper.service"
   }
 
   provisioner "file" {
@@ -288,7 +285,7 @@ resource "azurerm_linux_virtual_machine" "conductor" {
 
   admin_ssh_key {
     username   = var.username
-    public_key = file(var.azure_public_key)
+    public_key = local.public_key
   }
 }
 
@@ -302,32 +299,28 @@ resource "null_resource" "conductor" {
     type        = "ssh"
     user        = var.username
     host        = local.conductor_public_ip
-    private_key = var.private_ssh_key != null ? file(var.private_ssh_key) : null
+    private_key = local.private_key
   }
 
   triggers = {
     conductor_id = "${azurerm_linux_virtual_machine.conductor.id}"
   }
 
-  provisioner "remote-exec" {
-    # Make sure SSH is up and available on the server before trying anything else
-    inline = ["ls"]
-  }
-
   provisioner "file" {
-    content = templatefile("setup-disks.sh", { username = var.username })
-    destination = "${local.home_dir}/setup-disks.sh"
-  }
-
-  provisioner "remote-exec" {
-    inline = [ "chmod +x setup-disks.sh", "sudo ./setup-disks.sh" ]
+    source    = "${var.rama_source_path}"
+    destination = "${local.home_dir}/rama.zip"
   }
 
   provisioner "file" {
     content = templatefile("conductor/rama.yaml", {
         zk_private_ips = azurerm_linux_virtual_machine.zk.*.private_ip_address
     })
-    destination = "/data/rama/rama.yaml"
+    destination = "${local.home_dir}/rama.yaml"
+  }
+
+  provisioner "file" {
+    content = file("${var.license_source_path}")
+    destination = "${local.home_dir}/license.yaml"
   }
 
   provisioner "file" {
@@ -339,13 +332,13 @@ resource "null_resource" "conductor" {
   }
 
   provisioner "file" {
-    content = file("${var.license_source_path}")
-    destination = "/data/rama/license/team-license.yaml"
+    content = templatefile("setup-disks.sh", { username = var.username })
+    destination = "${local.home_dir}/setup-disks.sh"
   }
 
   provisioner "file" {
-    content = templatefile("conductor/unpack-rama.sh", { username = var.username })
-    destination = "/data/rama/unpack-rama.sh"
+    content = templatefile("conductor/setup.sh", { username = var.username })
+    destination = "${local.home_dir}/setup.sh"
   }
 
   provisioner "file" {
@@ -353,17 +346,12 @@ resource "null_resource" "conductor" {
     destination = "${local.home_dir}/start.sh"
   }
 
-  provisioner "file" {
-    source    = "${var.rama_source_path}"
-    destination = "${local.home_dir}/rama.zip"
+  provisioner "remote-exec" {
+    inline = [ "chmod +x setup-disks.sh", "sudo ./setup-disks.sh" ]
   }
 
   provisioner "remote-exec" {
-    inline = [
-      "cd /data/rama",
-      "chmod +x unpack-rama.sh",
-      "./unpack-rama.sh"
-    ]
+    inline = [ "chmod +x setup.sh", "sudo ./setup.sh" ]
   }
 
   provisioner "remote-exec" {
@@ -404,14 +392,13 @@ resource "azurerm_network_interface" "supervisor" {
 resource "azurerm_network_interface_security_group_association" "supervisor" {
   network_interface_id      = azurerm_network_interface.supervisor[count.index].id
   network_security_group_id = var.security_group_id
-  count = var.supervisor_num_nodes
+  count                     = var.supervisor_num_nodes
 }
 
 ###
 # Virtual Machines
 ###
 
-# TODO: Perhaps this should be an `azurerm_linux_virtual_machine_scale_set` instead?
 resource "azurerm_linux_virtual_machine" "supervisor" {
   source_image_id     = var.supervisor_vm_image
   size                = var.supervisor_size
@@ -435,7 +422,7 @@ resource "azurerm_linux_virtual_machine" "supervisor" {
 
   admin_ssh_key {
     username   = var.username
-    public_key = file(var.azure_public_key)
+    public_key = local.public_key
   }
 }
 
@@ -452,29 +439,11 @@ resource "null_resource" "supervisor" {
     type        = "ssh"
     user        = var.username
     host        = data.azurerm_public_ip.supervisor[count.index].ip_address
-    private_key = var.private_ssh_key != null ? file(var.private_ssh_key) : null
+    private_key = local.private_key
   }
 
   triggers = {
     supervisor_ids = "${join(",", azurerm_linux_virtual_machine.supervisor.*.id)}"
-  }
-
-  provisioner "file" {
-    content = templatefile("setup-disks.sh", { username = var.username })
-    destination = "${local.home_dir}/setup-disks.sh"
-  }
-
-  provisioner "file" {
-    content = templatefile("download_rama.sh", { conductor_ip = local.conductor_private_ip })
-    destination = "${local.home_dir}/download_rama.sh"
-  }
-
-  provisioner "remote-exec" {
-    inline = [ "chmod +x setup-disks.sh", "sudo ./setup-disks.sh" ]
-  }
-
-  provisioner "remote-exec" {
-    inline = [ "chmod +x download_rama.sh", "sudo ./download_rama.sh" ]
   }
 
   provisioner "file" {
@@ -494,11 +463,29 @@ resource "null_resource" "supervisor" {
   }
 
   provisioner "file" {
+    content = templatefile("setup-disks.sh", { username = var.username })
+    destination = "${local.home_dir}/setup-disks.sh"
+  }
+
+  provisioner "file" {
+    content = templatefile("supervisor/setup.sh", { conductor_ip = local.conductor_private_ip })
+    destination = "${local.home_dir}/setup.sh"
+  }
+
+  provisioner "file" {
     content = templatefile("supervisor/start.sh", {
       username = var.username
       private_ip = azurerm_linux_virtual_machine.supervisor[count.index].private_ip_address
     })
     destination = "${local.home_dir}/start.sh"
+  }
+
+  provisioner "remote-exec" {
+    inline = [ "chmod +x setup-disks.sh",  "sudo ./setup-disks.sh" ]
+  }
+  
+  provisioner "remote-exec" {
+    inline = [ "chmod +x setup.sh", "sudo ./setup.sh" ] 
   }
 
   provisioner "remote-exec" {

@@ -22,4 +22,4 @@ supervisor_size = "Standard_B1s"
 # Optional
 # zookeeper_num_nodes  = 1
 # supervisor_volume_size_gb = 100
-# private_ssh_key = "/Users/nixin72/.ssh/azure"
+# private_ssh_key = "/path/to/private/key"
