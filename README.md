@@ -37,7 +37,7 @@ file to your your private key identities with `ssh-add path/to/file.pem`.
 Create a file `~/.rama/auth.tfvars` with the following content:
 
 ```
-azure_key_name = <name of the key you have configured as a key pair for azure>
+azure_public_key = <path to public key on local disk to use for SSH onto deployed nodes>
 ```
 
 `~/.rama` must be added to your PATH.
