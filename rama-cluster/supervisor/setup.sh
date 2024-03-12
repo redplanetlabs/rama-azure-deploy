@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# Downloads the rama.zip file from the conductor and unzips it
+
 cd /data/rama
 
 until curl -s -f 'http://${conductor_ip}:8888/d/jar/download/rama.zip' \

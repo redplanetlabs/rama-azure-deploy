@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Downloads Zookeeper from a tar and unpacks it
+
 echo "Downloading zookeeper..." >> setup.log
 
 # Download and unpack Zookeeper

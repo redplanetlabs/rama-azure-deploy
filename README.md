@@ -28,19 +28,21 @@
 
 ## Prerequisites
 
-Terraform and the Azure CLI must be installed.
+Terraform and the Azure CLI must be installed, and you must be signed in to the
+Azure CLI. (you can do this via `az login`)
 
-If you haven't already, create a new key pair in your Azure portal.
-It should automatically download a new `.pem` file. Add the downloaded `.pem`
-file to your your private key identities with `ssh-add path/to/file.pem`.
+`~/.rama/` must be added to your PATH.
 
-Create a file `~/.rama/auth.tfvars` with the following content:
+In addition to authenticating with the Azure CLI, you must setup a keypair to
+connect to the deployed instances with. Make sure to add the private key to
+your SSH identities with `ssh-add path/to/private/key`
+
+For the public key, create a file `~/.rama/auth.tfvars` with the following
+content:
 
 ```
-azure_public_key = <path to public key on local disk to use for SSH onto deployed nodes>
+azure_public_key = "/path/to/corresponding/public/key"
 ```
-
-`~/.rama` must be added to your PATH.
 
 This deploy requires a full Rama release which currently requires being part of the [private beta](https://docs.google.com/forms/d/e/1FAIpQLSfrhmBwI0YAeaL8u4XmgfscW4UIUUDp2ZHSs4KmPH_TaDt1QQ/viewform).
 
