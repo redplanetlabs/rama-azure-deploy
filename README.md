@@ -44,7 +44,7 @@ content:
 azure_public_key = "/path/to/corresponding/public/key"
 ```
 
-This deploy requires a full Rama release which currently requires being part of the [private beta](https://docs.google.com/forms/d/e/1FAIpQLSfrhmBwI0YAeaL8u4XmgfscW4UIUUDp2ZHSs4KmPH_TaDt1QQ/viewform).
+You can download a Rama release [from our website](https://redplanetlabs.com/download).
 
 ## Deploying
 
