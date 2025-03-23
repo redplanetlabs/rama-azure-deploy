@@ -3,7 +3,6 @@ location = "eastus"
 username = "azureuser"
 
 rama_source_path    = "/absolute/path/to/rama.zip"
-license_source_path = "/absolute/path/to/license.edn"
 zookeeper_url   = "https://dlcdn.apache.org/zookeeper/zookeeper-3.8.4/apache-zookeeper-3.8.4-bin.tar.gz"
 
 supervisor_num_nodes = 2
@@ -20,6 +19,7 @@ zookeeper_size  = "Standard_B1s"
 supervisor_size = "Standard_B1s"
 
 # Optional
+# license_source_path = "/absolute/path/to/license.edn"
 # zookeeper_num_nodes  = 1
 # supervisor_volume_size_gb = 100
 # private_ssh_key = "/path/to/private/key"

@@ -12,7 +12,10 @@ variable "location" { type = string }
 variable "username" { type = string }
 
 variable "rama_source_path" { type = string }
-variable "license_source_path" { type = string }
+variable "license_source_path" {
+  type    = string
+  default = ""
+}
 variable "zookeeper_url" { type = string }
 
 variable "security_group_id" { type = string }
@@ -57,7 +60,7 @@ locals {
 
   home_dir    = "/home/${var.username}"
   systemd_dir = "/etc/systemd/system"
-  
+
   public_key  = file(var.azure_public_key)
   private_key = var.private_ssh_key != null ? file(pathexpand("~/.ssh/${var.private_ssh_key}")) : null
 }
@@ -319,11 +322,6 @@ resource "null_resource" "conductor" {
   }
 
   provisioner "file" {
-    content = file("${var.license_source_path}")
-    destination = "${local.home_dir}/license.yaml"
-  }
-
-  provisioner "file" {
     content = templatefile("systemd-service-template.service", {
       description = "Rama Conductor",
       command     = "conductor"
@@ -356,6 +354,15 @@ resource "null_resource" "conductor" {
 
   provisioner "remote-exec" {
     inline = [ "chmod +x start.sh", "sudo ./start.sh" ]
+  }
+}
+
+resource "null_resource" "upload_license" {
+  count = var.license_source_path != "" ? 1 : 0
+
+  provisioner "file" {
+    content     = file(var.license_source_path)
+    destination = "${local.home_dir}/license.yaml"
   }
 }
 
@@ -483,9 +490,9 @@ resource "null_resource" "supervisor" {
   provisioner "remote-exec" {
     inline = [ "chmod +x setup-disks.sh",  "sudo ./setup-disks.sh" ]
   }
-  
+
   provisioner "remote-exec" {
-    inline = [ "chmod +x setup.sh", "sudo ./setup.sh" ] 
+    inline = [ "chmod +x setup.sh", "sudo ./setup.sh" ]
   }
 
   provisioner "remote-exec" {

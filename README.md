@@ -52,7 +52,7 @@ You can download a Rama release [from our website](https://redplanetlabs.com/dow
 
 To deploy a rama cluster:
 
-1. Make sure you have your zip file of Rama and license downloaded.
+1. Make sure you have your zip file of Rama.
 2. Create `rama.tfvars` at the root of your project to set Terraform variables.
    These govern e.g. the number of supervisors to deploy.
    See `rama.tfvars.example`. There are several variables that are
@@ -179,7 +179,7 @@ An absolute path pointing to the location on the local disk of your `rama.zip`.
 
 ### license_source_path
 - type: `string`
-- required: `true`
+- required: `false`
 
 An absolute path pointing to the location on the local disk of your Rama license file.
 
